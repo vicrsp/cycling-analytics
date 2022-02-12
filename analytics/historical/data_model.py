@@ -69,17 +69,21 @@ class CyclingAnalyticsDataModel:
 
 
 class PerfProDataModel:
-
     def __init__(self, file: str) -> None:
-        conn_string = r"Driver={Microsoft Access Driver (*.mdb, *.accdb)}; DBQ=%s;" % file
-        self.conn = pyodbc.connect(conn_string)
+        self.conn = create_connection(file)
 
     def get_performance_by_user(self, user: str) -> pd.DataFrame:
         try:
-            col_names = ['userName', 'dateStamp', 'userWeight', 'minutes', 
+            col_names = ['userName', 'CourseID', 'units', 'dateStamp', 'userWeight', 'minutes', 
             'aveSpeed', 'aveWatts', 'aveHR', 'aveRPMs', 'NormPower', 'aveCalories', 'avePowerL', 'avePowerR',
-            'RunFTP', 'EstFTP', 'EWMA', 'TSS', 'WorkoutType', 'aveLoad', 'MinLoad', 'MaxLoad']
-            query = f'select {", ".join(col_names)} from Performances where userName = (?);'
+            'EWMA', 'TSS', 'aveLoad', 'MinLoad', 'MaxLoad', 'UserMaxWatts',
+            'WattsTH5S'	,'WattsTH10S','WattsTH20S','WattsTH30S','WattsTH60S','WattsTH2M','WattsTH3M','WattsTH5M',
+            'WattsTH8M','WattsTH10M','WattsTH15M','WattsTH20M','WattsTH30M','WattsTH45M','WattsTH60M',
+            'PwrTimes', 'PwrRanges', 'HRTimes', 'HRRanges', 'PaceTimes', 'PaceRanges', 'UserLTHR', 'UserMaxHR'
+            ]
+
+            query = f'select {", ".join(col_names)} FROM performances p join perfzones pz on pz.PerfID = p.ID join wattagethresh wt on wt.PerfID = p.ID where p.userName = (?);'
+            
             cursor = self.conn.cursor()
             cursor.execute(query, (user,))
             db_results = cursor.fetchall()
@@ -90,4 +94,26 @@ class PerfProDataModel:
 
         except Exception as e:
           raise e
-        
+
+    def get_performances(self) -> pd.DataFrame:
+        try:
+            col_names = ['userName', 'CourseID',  'units', 'dateStamp', 'userWeight', 'minutes', 
+            'aveSpeed', 'aveWatts', 'aveHR', 'aveRPMs', 'NormPower', 'aveCalories', 'avePowerL', 'avePowerR',
+            'EWMA', 'TSS', 'aveLoad', 'MinLoad', 'MaxLoad', 'UserMaxWatts',
+            'WattsTH5S'	,'WattsTH10S','WattsTH20S','WattsTH30S','WattsTH60S','WattsTH2M','WattsTH3M','WattsTH5M',
+            'WattsTH8M','WattsTH10M','WattsTH15M','WattsTH20M','WattsTH30M','WattsTH45M','WattsTH60M',
+            'PwrTimes', 'PwrRanges', 'HRTimes', 'HRRanges', 'PaceTimes', 'PaceRanges', 'UserLTHR', 'UserMaxHR'
+            ]
+            query = f'select {", ".join(col_names)} FROM performances p join perfzones pz on pz.PerfID = p.ID join wattagethresh wt on wt.PerfID = p.ID'
+            cursor = self.conn.cursor()
+            cursor.execute(query)
+            db_results = cursor.fetchall()
+            results = []
+            for row in db_results:
+                results.append(list(row))
+            return pd.DataFrame(results, columns=col_names)
+
+        except Exception as e:
+          raise e
+    
+    

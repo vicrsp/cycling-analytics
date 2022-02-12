@@ -31,7 +31,7 @@ for file in zip_files:
     with zipfile.ZipFile(join(path_to_read_zip_files, file), 'r') as zip_ref:        
         for file_name in zip_ref.namelist():
             if file_name.endswith('.fit'):
-                 zip_ref.extract(file_name, path_to_extract_zip_files)
+                zip_ref.extract(file_name, path_to_extract_zip_files)
                  
 fit_files = [f for f in listdir(path_to_extract_zip_files) if isfile(join(path_to_extract_zip_files, f))]
 
